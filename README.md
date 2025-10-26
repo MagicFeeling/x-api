@@ -47,27 +47,36 @@ Post tweets with images to X (Twitter) using Docker and Python.
 
 ## Usage
 
-### Post a tweet (text only)
+The script reads caption text and image paths from `config.json`. The config is automatically updated by the image generation workflow.
+
+### Post a tweet
 ```bash
-make post TEXT="Hello, world!"
+make post
 ```
 
-### Post a tweet with an image
-```bash
-make post TEXT="Check out this image!" IMAGE=images/photo.jpg
-```
+This will:
+1. Load the caption from the file specified in `config.json` (`caption.file`)
+2. Load images from `media.sfw_file` and/or `media.nsfw_file`
+3. Post to X with the caption and images
 
-Place your images in the `images/` directory before referencing them.
+### Configuration Structure
+
+The `config.json` file should contain:
+- `project_folder` - Base path to the project folder
+- `caption.file` - Relative path to caption text file (e.g., `Prompts/socialmedia.txt`)
+- `media.sfw_file` - Path to SFW image
+- `media.nsfw_file` - Path to NSFW image
+
+These fields are automatically populated by the `image_prompt_generator_openai.py` and `add_text_to_image.py` scripts.
 
 ## File Structure
 
-- `config.json` - API credentials (keep this secure, not in git!)
+- `config.json` - API credentials and posting configuration (keep this secure, not in git!)
 - `config.template.json` - Template for config.json
 - `post.py` - Python script for posting tweets
 - `Dockerfile` - Container configuration
 - `docker-compose.yml` - Docker Compose setup
 - `Makefile` - Convenient commands
-- `images/` - Place your images here
 - `.gitignore` - Excludes config.json from git
 
 ## Other Commands

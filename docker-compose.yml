@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  x-api:
+    build: .
+    container_name: x-api
+    volumes:
+      - ./config.json:/app/config.json:ro
+      - ./images:/app/images:ro
+      - ./post.py:/app/post.py
+    environment:
+      - TWEET_TEXT=${TWEET_TEXT:-Hello from X API!}
+      - IMAGE_PATH=${IMAGE_PATH:-}

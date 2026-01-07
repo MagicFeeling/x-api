@@ -72,8 +72,8 @@ def create_api(config):
     return tweepy.API(auth)
 
 
-def post_tweet(config, tweet_text, image_paths=None):
-    """Post a tweet with optional images (up to 4)"""
+def post_tweet(config, tweet_text, image_paths=None, video_path=None):
+    """Post a tweet with optional images (up to 4) or a video"""
     try:
         # Create client and API
         client = create_client(config)
@@ -81,8 +81,17 @@ def post_tweet(config, tweet_text, image_paths=None):
 
         media_ids = []
 
-        # Upload images if provided
-        if image_paths:
+        # Upload video if provided (mutually exclusive with images)
+        if video_path:
+            if os.path.exists(video_path):
+                print(f"Uploading video: {video_path}")
+                media = api.media_upload(filename=video_path, media_category='tweet_video')
+                media_ids.append(media.media_id)
+                print(f"Video uploaded successfully. Media ID: {media.media_id}")
+            else:
+                print(f"Warning: Video not found: {video_path}")
+        # Upload images if provided (only if no video)
+        elif image_paths:
             for image_path in image_paths:
                 if os.path.exists(image_path):
                     print(f"Uploading image: {image_path}")
@@ -114,7 +123,7 @@ def post_tweet(config, tweet_text, image_paths=None):
 def main():
     """Main function"""
     print("=" * 50)
-    print("X (Twitter) Image Poster")
+    print("X (Twitter) Image/Video Poster")
     print("=" * 50)
 
     # Load configuration
@@ -123,52 +132,84 @@ def main():
     # Get project folder
     project_folder = config.get('project_folder')
 
-    # Load caption from config
-    caption_file = config.get('caption', {}).get('file', '')
-    if caption_file:
-        caption = load_caption(caption_file, project_folder)
-        if caption:
-            print(f"\nCaption loaded: {len(caption)} characters")
+    # Check if video mode is enabled
+    video_config = config.get('video', {})
+    video_enabled = video_config.get('enabled', False)
+    video_path = None
+
+    if video_enabled:
+        # Load video caption
+        video_caption_file = video_config.get('caption_file', 'Prompts/video-preview.txt')
+        caption = load_caption(video_caption_file, project_folder)
+
+        # Get video file path
+        video_file = video_config.get('file', 'Video/preview.mp4')
+        if project_folder and not os.path.isabs(video_file):
+            video_path = os.path.join(project_folder, video_file)
         else:
-            print("\nWarning: No caption loaded")
+            video_path = video_file
+
+        print(f"\nMode: VIDEO")
+        print(f"Video file: {video_path}")
+        exists = "✓" if os.path.exists(video_path) else "✗"
+        print(f"  {exists} {os.path.basename(video_path)}")
+
+        if caption:
+            print(f"Caption loaded: {len(caption)} characters")
+        else:
+            print("Warning: No caption loaded")
             caption = ""
     else:
-        caption = ""
+        # Load caption from config
+        caption_file = config.get('caption', {}).get('file', '')
+        if caption_file:
+            caption = load_caption(caption_file, project_folder)
+            if caption:
+                print(f"\nCaption loaded: {len(caption)} characters")
+            else:
+                print("\nWarning: No caption loaded")
+                caption = ""
+        else:
+            caption = ""
 
-    # Get image paths from config
-    image_paths = []
-    media = config.get('media', {})
+        # Get image paths from config
+        image_paths = []
+        media = config.get('media', {})
 
-    # Check for SFW file
-    if 'sfw_file' in media and media['sfw_file']:
-        sfw_file = media['sfw_file']
-        # Build full path if project_folder exists and path is relative
-        if project_folder and not os.path.isabs(sfw_file):
-            sfw_file = os.path.join(project_folder, sfw_file)
-        image_paths.append(sfw_file)
+        # Check for SFW file
+        if 'sfw_file' in media and media['sfw_file']:
+            sfw_file = media['sfw_file']
+            # Build full path if project_folder exists and path is relative
+            if project_folder and not os.path.isabs(sfw_file):
+                sfw_file = os.path.join(project_folder, sfw_file)
+            image_paths.append(sfw_file)
 
-    # Check for NSFW file
-    if 'nsfw_file' in media and media['nsfw_file']:
-        nsfw_file = media['nsfw_file']
-        # Build full path if project_folder exists and path is relative
-        if project_folder and not os.path.isabs(nsfw_file):
-            nsfw_file = os.path.join(project_folder, nsfw_file)
-        image_paths.append(nsfw_file)
+        # Check for NSFW file
+        if 'nsfw_file' in media and media['nsfw_file']:
+            nsfw_file = media['nsfw_file']
+            # Build full path if project_folder exists and path is relative
+            if project_folder and not os.path.isabs(nsfw_file):
+                nsfw_file = os.path.join(project_folder, nsfw_file)
+            image_paths.append(nsfw_file)
 
-    # Display images to post
-    print(f"\nImages to post: {len(image_paths)}")
-    for path in image_paths:
-        exists = "✓" if os.path.exists(path) else "✗"
-        print(f"  {exists} {os.path.basename(path)}")
+        # Display images to post
+        print(f"\nMode: IMAGES")
+        print(f"Images to post: {len(image_paths)}")
+        for path in image_paths:
+            exists = "✓" if os.path.exists(path) else "✗"
+            print(f"  {exists} {os.path.basename(path)}")
 
-    if not image_paths:
-        print("\nWarning: No images specified in config")
+        if not image_paths:
+            print("\nWarning: No images specified in config")
 
     print("\nPosting to X...")
     print("-" * 50)
 
     # Post tweet
-    post_tweet(config, caption, image_paths if image_paths else None)
+    if video_enabled:
+        post_tweet(config, caption, video_path=video_path)
+    else:
+        post_tweet(config, caption, image_paths=image_paths if image_paths else None)
 
     print("-" * 50)
     print("\n✓ All done!")

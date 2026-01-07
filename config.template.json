@@ -13,5 +13,10 @@
   },
   "caption": {
     "file": "Prompts/socialmedia.txt"
+  },
+  "video": {
+    "enabled": false,
+    "file": "Video/preview.mp4",
+    "caption_file": "Prompts/video-preview.txt"
   }
 }

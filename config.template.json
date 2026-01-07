@@ -14,9 +14,14 @@
   "caption": {
     "file": "Prompts/socialmedia.txt"
   },
-  "video": {
-    "enabled": false,
-    "file": "Video/preview.mp4",
-    "caption_file": "Prompts/video-preview.txt"
-  }
+  "videos": [
+    {
+      "file": "Video/preview.mp4",
+      "caption_file": "Prompts/video-preview.txt"
+    },
+    {
+      "file": "Video/blurred.mp4",
+      "caption_file": "Prompts/video-preview-nsfw.txt"
+    }
+  ]
 }

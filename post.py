@@ -134,31 +134,43 @@ def main():
 
     # Check if video mode is enabled via environment variable
     video_enabled = os.environ.get('VIDEO_MODE', 'false').lower() == 'true'
-    video_config = config.get('video', {})
-    video_path = None
 
     if video_enabled:
-        # Load video caption
-        video_caption_file = video_config.get('caption_file', 'Prompts/video-preview.txt')
-        caption = load_caption(video_caption_file, project_folder)
+        # Video mode - handle multiple videos
+        videos_config = config.get('videos', [])
 
-        # Get video file path
-        video_file = video_config.get('file', 'Video/preview.mp4')
-        if project_folder and not os.path.isabs(video_file):
-            video_path = os.path.join(project_folder, video_file)
-        else:
-            video_path = video_file
+        if not videos_config:
+            print("✗ No videos configured in config.json")
+            sys.exit(1)
 
-        print(f"\nMode: VIDEO")
-        print(f"Video file: {video_path}")
-        exists = "✓" if os.path.exists(video_path) else "✗"
-        print(f"  {exists} {os.path.basename(video_path)}")
+        print(f"\nMode: VIDEO ({len(videos_config)} video(s))")
 
-        if caption:
-            print(f"Caption loaded: {len(caption)} characters")
-        else:
-            print("Warning: No caption loaded")
-            caption = ""
+        video_posts = []
+        for i, video_config in enumerate(videos_config, 1):
+            print(f"\n--- Video {i}/{len(videos_config)} ---")
+
+            # Load caption for this video
+            video_caption_file = video_config.get('caption_file', 'Prompts/video-preview.txt')
+            caption = load_caption(video_caption_file, project_folder)
+
+            # Get video file path
+            video_file = video_config.get('file', 'Video/preview.mp4')
+            if project_folder and not os.path.isabs(video_file):
+                video_path = os.path.join(project_folder, video_file)
+            else:
+                video_path = video_file
+
+            print(f"Video file: {video_path}")
+            exists = "✓" if os.path.exists(video_path) else "✗"
+            print(f"  {exists} {os.path.basename(video_path)}")
+
+            if caption:
+                print(f"Caption loaded: {len(caption)} characters")
+            else:
+                print("Warning: No caption loaded")
+                caption = ""
+
+            video_posts.append((video_path, caption))
     else:
         # Load caption from config
         caption_file = config.get('caption', {}).get('file', '')
@@ -205,9 +217,12 @@ def main():
     print("\nPosting to X...")
     print("-" * 50)
 
-    # Post tweet
+    # Post tweet(s)
     if video_enabled:
-        post_tweet(config, caption, video_path=video_path)
+        # Post each video separately
+        for i, (video_path, caption) in enumerate(video_posts, 1):
+            print(f"\n>>> Posting video {i}/{len(video_posts)}: {os.path.basename(video_path)}")
+            post_tweet(config, caption, video_path=video_path)
     else:
         post_tweet(config, caption, image_paths=image_paths if image_paths else None)
 

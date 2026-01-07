@@ -132,9 +132,9 @@ def main():
     # Get project folder
     project_folder = config.get('project_folder')
 
-    # Check if video mode is enabled
+    # Check if video mode is enabled via environment variable
+    video_enabled = os.environ.get('VIDEO_MODE', 'false').lower() == 'true'
     video_config = config.get('video', {})
-    video_enabled = video_config.get('enabled', False)
     video_path = None
 
     if video_enabled:

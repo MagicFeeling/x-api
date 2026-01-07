@@ -1,9 +1,12 @@
-.PHONY: post build up down logs clean
+.PHONY: post video build up down logs clean
 
-# Post a tweet using config.json settings
-# Caption and images are loaded from config.json
+# Post images to X (Twitter)
 post:
 	docker compose run --rm x-api
+
+# Post video to X (Twitter)
+video:
+	VIDEO_MODE=true docker compose run --rm x-api
 
 # Build the Docker image
 build:
@@ -29,7 +32,8 @@ clean:
 # Help
 help:
 	@echo "Available commands:"
-	@echo "  make post      - Post tweet using config.json settings"
+	@echo "  make post      - Post images to X (Twitter)"
+	@echo "  make video     - Post video to X (Twitter)"
 	@echo "  make build     - Build Docker image"
 	@echo "  make up        - Start service"
 	@echo "  make down      - Stop service"

@@ -8,3 +8,5 @@ services:
       - ./config.json:/app/config.json:ro
       - ./post.py:/app/post.py
       - /home/pocahontas/Documents/Fanvue:/home/pocahontas/Documents/Fanvue:ro
+    environment:
+      - VIDEO_MODE=${VIDEO_MODE:-false}

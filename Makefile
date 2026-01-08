@@ -1,12 +1,16 @@
-.PHONY: post video build up down logs clean
+.PHONY: post preview blurred build up down logs clean
 
 # Post images to X (Twitter)
 post:
 	docker compose run --rm x-api
 
-# Post video to X (Twitter)
-video:
-	VIDEO_MODE=true docker compose run --rm x-api
+# Post preview video to X (Twitter)
+preview:
+	VIDEO_MODE=true VIDEO_SELECT=preview docker compose run --rm x-api
+
+# Post blurred video to X (Twitter)
+blurred:
+	VIDEO_MODE=true VIDEO_SELECT=blurred docker compose run --rm x-api
 
 # Build the Docker image
 build:
@@ -33,7 +37,8 @@ clean:
 help:
 	@echo "Available commands:"
 	@echo "  make post      - Post images to X (Twitter)"
-	@echo "  make video     - Post video to X (Twitter)"
+	@echo "  make preview   - Post preview video to X (Twitter)"
+	@echo "  make blurred   - Post blurred video to X (Twitter)"
 	@echo "  make build     - Build Docker image"
 	@echo "  make up        - Start service"
 	@echo "  make down      - Stop service"

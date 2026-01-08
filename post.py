@@ -117,6 +117,22 @@ def post_tweet(config, tweet_text, image_paths=None, video_path=None):
 
     except Exception as e:
         print(f"✗ Error posting tweet: {e}")
+        print(f"\n[DEBUG] Exception type: {type(e).__name__}")
+        print(f"[DEBUG] Exception details: {str(e)}")
+
+        # Try to extract more details from tweepy exceptions
+        if hasattr(e, 'response'):
+            print(f"[DEBUG] Response status: {e.response.status_code if hasattr(e.response, 'status_code') else 'N/A'}")
+            print(f"[DEBUG] Response headers: {dict(e.response.headers) if hasattr(e.response, 'headers') else 'N/A'}")
+            print(f"[DEBUG] Response text: {e.response.text if hasattr(e.response, 'text') else 'N/A'}")
+
+        if hasattr(e, 'api_errors'):
+            print(f"[DEBUG] API errors: {e.api_errors}")
+        if hasattr(e, 'api_codes'):
+            print(f"[DEBUG] API codes: {e.api_codes}")
+        if hasattr(e, 'api_messages'):
+            print(f"[DEBUG] API messages: {e.api_messages}")
+
         sys.exit(1)
 
 
@@ -136,14 +152,25 @@ def main():
     video_enabled = os.environ.get('VIDEO_MODE', 'false').lower() == 'true'
 
     if video_enabled:
-        # Video mode - handle multiple videos
+        # Video mode - handle multiple videos or single video selection
         videos_config = config.get('videos', [])
 
         if not videos_config:
             print("✗ No videos configured in config.json")
             sys.exit(1)
 
-        print(f"\nMode: VIDEO ({len(videos_config)} video(s))")
+        # Check if specific video is selected (preview or blurred)
+        video_select = os.environ.get('VIDEO_SELECT', '').lower()
+
+        # Filter videos based on selection
+        if video_select == 'preview':
+            videos_config = [v for v in videos_config if 'preview.mp4' in v.get('file', '')]
+            print(f"\nMode: VIDEO - Preview only")
+        elif video_select == 'blurred':
+            videos_config = [v for v in videos_config if 'blurred.mp4' in v.get('file', '')]
+            print(f"\nMode: VIDEO - Blurred only")
+        else:
+            print(f"\nMode: VIDEO ({len(videos_config)} video(s))")
 
         video_posts = []
         for i, video_config in enumerate(videos_config, 1):

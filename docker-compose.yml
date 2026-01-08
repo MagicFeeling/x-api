@@ -10,3 +10,4 @@ services:
       - /home/pocahontas/Documents/Fanvue:/home/pocahontas/Documents/Fanvue:ro
     environment:
       - VIDEO_MODE=${VIDEO_MODE:-false}
+      - VIDEO_SELECT=${VIDEO_SELECT:-}
